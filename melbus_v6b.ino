@@ -15,7 +15,8 @@
 */
 
 /*
- * Based upon Karl's work and the links above. I figured out how to send cd and track number to HU and also made the code faster (and less human readable).
+ * Based upon Karl's work http://gizmosnack.blogspot.se/2015/11/aux-in-volvo-hu-xxxx-radio.html
+ * and the links above. I figured out how to send cd and track number to HU and also made the code faster (and less human readable).
  * The arduino can also go into master mode (this is not necessary to send track information), but I don't know what to send.
  * I only managed to fake a CD-C. No text, nor MD-C.
  * You can change tracks on the HU and it will show in the display (it won't actually change the played track yet. I'm waiting for a BT device to arrive and I might
