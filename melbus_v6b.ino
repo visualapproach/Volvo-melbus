@@ -16,11 +16,13 @@
 
 /*
  * Based upon Karl's work http://gizmosnack.blogspot.se/2015/11/aux-in-volvo-hu-xxxx-radio.html
- * and the links above. I figured out how to send cd and track number to HU and also made the code faster (and less human readable).
+ * and the links above. I figured out how to send cd and track number to HU and also made the main loop faster (and less human readable).
  * The arduino can also go into master mode (this is not necessary to send track information), but I don't know what to send.
  * I only managed to fake a CD-C. No text, nor MD-C.
  * You can change tracks on the HU and it will show in the display (it won't actually change the played track yet. I'm waiting for a BT device to arrive and I might
  * get it to play next/previous song)
+ 
+ Thomas Landahl 2017-01-21
  */
 
 #define MELBUS_CLOCKBIT (byte)2 //Pin D2  - CLK
@@ -39,7 +41,7 @@ bool Connected = false;
 //Base adresses.
 //const byte MD_ADDR = 0x70;  //internal
 //const byte CD_ADDR = 0x80;  //internal
-//const byte TV_ADDR = 0xA8;  //A9 during main init sequence, but we only check high nibble
+//const byte TV_ADDR = 0xA8;  //A9 during main init sequence?
 //const byte DAB_ADDR = 0xB8;
 //const byte SAT_ADDR = 0xC0;
 //const byte MDC_ADDR = 0xD8;
@@ -64,12 +66,12 @@ void setup() {
   //Data is deafult input high
   pinMode(MELBUS_DATA, INPUT_PULLUP);
 
-  //Activate interrupt on clock pin (INT0, D3)
+  //Activate interrupt on clock pin
   attachInterrupt(digitalPinToInterrupt(MELBUS_CLOCKBIT), MELBUS_CLOCK_INTERRUPT, RISING);
   //Set Clockpin-interrupt to input
   pinMode(MELBUS_CLOCKBIT, INPUT_PULLUP);
 
-  //Initiate serial communication to debug via serial-usb (arduino)
+  //Initiate serial communication to debug via serial-usb (arduino). Don't forget to match baudrate in ser. monitor
   Serial.begin(57600);
   //Serial.println("Initiating contact with Volvo-Melbus:");
 
@@ -80,8 +82,6 @@ void setup() {
 //Main loop
 void loop() {
   if (ByteIsRead) {
-    //DEBUG
-    //if (flag) Serial.println(melbus_ReceivedByte, HEX);
     //Reset bool to enable reading of next byte
     ByteIsRead = false;
 
@@ -90,8 +90,6 @@ void loop() {
         //"MASTER REQUEST BROADCAST" OR "SECONDARY INIT"
         while (!ByteIsRead); //wait for next byte
         ByteIsRead = false;
-        //Serial.println("byte ");
-        //Serial.println(melbus_ReceivedByte, HEX);
 
         switch (melbus_ReceivedByte) {
 
@@ -107,7 +105,7 @@ void loop() {
                 switch (melbus_ReceivedByte) {
                   //secondary init
                   case 0xED:
-                    for (int i = 0; i < 10; i++) { //check next 100 bytes for our ID
+                    for (int i = 0; i < 100; i++) { //check next 100 bytes for our ID
                       while (!ByteIsRead); //wait for next byte
                       ByteIsRead = false;
                       if (melbus_ReceivedByte == DEVICE) { //is it my id?
