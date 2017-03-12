@@ -10,6 +10,7 @@ Needed:
    * 1x 1KΩ
 * A rectifier diode (> 0,5A)
 * Cables
+* Male DIN plug, 8 pin, 270 degrees
 
 Some knowledge of electronics. You are responsible if things break! Not me!
 
