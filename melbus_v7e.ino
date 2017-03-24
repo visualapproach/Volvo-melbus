@@ -1,8 +1,4 @@
 /* Tested on my HU-650
-    7c: eliminated prev bytes check = faster loop.
-    serial: scanned some messages and corrected a command (base_id instead of alt_id)
-    cartridge info gives error!
-
 */
 
 #define MELBUS_CLOCKBIT (byte)2 //Pin D2  - CLK
