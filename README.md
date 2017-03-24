@@ -19,4 +19,4 @@ Based on other peoples work. Credits to Karl Hagström and http://volvo.wot.lv/w
 This project shows the way I did it. Proceed at your own risk. I nearly blew the BT module and the arduino by switching the 12v RUN cable with the 5v BUSY cable...
 
 ## Schematics
-![Schematics](/schematics.png)
+![Schematics](/schematic.png)
