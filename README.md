@@ -1,6 +1,6 @@
 # Volvo MELBUS
 
-Get AUX input on your Volvo stereo HU.
+Bluetooth enable your Volvo stereo HU.
 
 Needed:
 * Arduino Nano 5V
