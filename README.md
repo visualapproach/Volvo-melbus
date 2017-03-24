@@ -7,10 +7,12 @@ Needed:
 * Transistor that can handle more than 0,5A
 * 4 resistors:
    * 3x 100Ω
+   * 3x 560Ω
    * 1x 1KΩ
 * A rectifier diode (> 0,5A)
 * Cables
 * Male DIN plug, 8 pin, 270 degrees
+* BT audio module like this (http://www.ebay.com/itm/161854077325?_trksid=p2057872.m2749.l2649&ssPageName=STRK%3AMEBIDX%3AIT)
 
 Some knowledge of electronics. You are responsible if things break! Not me!
 
