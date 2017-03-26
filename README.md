@@ -22,4 +22,4 @@ This project shows the way I did it. Proceed at your own risk. I nearly blew the
 
 ## Schematics
 ![Schematics](/schematic.png)
-![Image](/IMG_2051.JPG)
+![Image](/IMG_2056.png)
