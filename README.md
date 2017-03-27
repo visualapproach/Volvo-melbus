@@ -2,23 +2,24 @@
 
 Bluetooth enable your Volvo stereo HU.
 
-Needed:
+What you need:
 * Arduino Nano 5V
 * Transistor that can handle more than 0,5A
-* 4 resistors:
+* Resistors:
    * 3x 100Ω
    * 3x 560Ω
    * 1x 1KΩ
-* A rectifier diode (> 0,5A)
+* A rectifier diode (> 0,5A e.g. 1N4004)
+* 3x LED's (To drop voltage and look cool)
 * Cables
 * Male DIN plug, 8 pin, 270 degrees
-* BT audio module like this (http://www.ebay.com/itm/161854077325?_trksid=p2057872.m2749.l2649&ssPageName=STRK%3AMEBIDX%3AIT)
+* [BT Audio Module like this](http://www.ebay.com/itm/161854077325?_trksid=p2057872.m2749.l2649&ssPageName=STRK%3AMEBIDX%3AIT "Ebay Link")
 
 Some knowledge of electronics. You are responsible if things break! Not me!
 
-Based on other peoples work. Credits to Karl Hagström and http://volvo.wot.lv/wiki/doku.php?id=melbus.
+Based on other peoples work. Credits to [Karl Hagström](http://gizmosnack.blogspot.se/2015/11/aux-in-volvo-hu-xxxx-radio.html) and http://volvo.wot.lv/wiki/doku.php?id=melbus.
 
-This project shows the way I did it. Proceed at your own risk. I nearly blew the BT module and the arduino by switching the 12v RUN cable with the 5v BUSY cable...
+This project shows the way I did it. Proceed at your own risk. I nearly blew the BT module and the Arduino by switching the 12v RUN cable with the 5v BUSY cable...
 
 ## Schematics
 ![Schematics](/schematic.png)
