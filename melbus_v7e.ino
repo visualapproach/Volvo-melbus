@@ -198,6 +198,7 @@ void loop() {
               case 10:
                 byteToSend = 0x00;
                 SendByteToMelbus();
+                play();
                 break;
               //11 random mode. ack, not verified
               case 11:
