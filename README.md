@@ -24,3 +24,8 @@ This project shows the way I did it. Proceed at your own risk. I nearly blew the
 ## Schematics
 ![Schematics](/schematic.png)
 ![Image](/IMG_2056.png)
+
+A little teaser. If I manage to hack, or someone else tells me about the communication for SAT, there might be custom text in the display!
+It's really hard though, to know how to do that without a SAT device to listen in on.
+![Image](/IMG_2065.JPG)
+![Image](/IMG_2067.JPG)
