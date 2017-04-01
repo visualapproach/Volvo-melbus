@@ -1,4 +1,11 @@
-/* Tested on my HU-650
+/*
+  New in this update:
+  CD number is selectable by pressing corresponding button on HU
+  Working response to POWER UP command
+  Possible to change trackInfo while running (via serial)
+  
+  Thomas Landahl, 2017
+
 */
 
 #define MELBUS_CLOCKBIT (byte)2 //Pin D2  - CLK
@@ -16,6 +23,11 @@ volatile bool byteIsRead = false;
 byte byteToSend = 0;  //global to avoid unnecessary overhead
 unsigned long Connected = 0;
 
+//preset parameters
+byte track = 0x01; //Display show HEX value, not DEC. (A-F not "allowed")
+byte cd = 0x01; //1-10 DECIMAL is allowed
+byte powerup_ack = 0x00;
+
 //Base adresses.
 //const byte MD_ADDR = 0x70;  //internal
 //const byte CD_ADDR = 0x80;  //internal
@@ -26,25 +38,22 @@ unsigned long Connected = 0;
 //const byte CDC_ADDR = 0xE8;
 //const byte RESPONSE = 0x06; //add this to base adress when responding to HU
 //const byte MASTER = 0x07;   //add this to base adress when requesting/beeing master
-//const byte DEVICE = CDC_ADDR; //change this if you want to fake another device
 
 //change theese definitions if you wanna emulate another device.
-//My HU-650 don't accept anything but a CD-C (so far).
 #define RESPONSE_ID 0xEE  //ID while responding to init requests (which will use base_id)
 #define MASTER_ID 0xEF    //ID while requesting/beeing master
 #define BASE_ID 0xE8      //ID when getting commands from HU
 #define ALT_ID 0xE9       //Alternative ID when getting commands from HU
-//#define HIGH_NIBBLE (byte)0xE;
 
 //This list can't be too long. We only have so much time between the received bytes. (approx 500 us)
-byte commands[][5] = {
-  {BASE_ID, 0x1E, 0xEF},             //0, Cartridge info request. Respond with 6 bytes (confirmed)
-  {ALT_ID, 0x1B, 0xE0, 0x01, 0x08}, //1, track info req. resp 9 bytes
-  {BASE_ID, 0x1B, 0x2D, 0x40, 0x01}, //2, next track.
-  {BASE_ID, 0x1B, 0x2D, 0x00, 0x01}, //3, prev track
-  {BASE_ID, 0x1A, 0x50, 0x41},       //4, next cd, not verified (what buttons on HU trigger this command?)
-  {ALT_ID, 0x1A, 0x50, 0x01},       //5, prev cd, not verified
-  {BASE_ID, 0x19, 0x2F},            //6, power up. resp ack (0x00), response not verified. HU keeps sending this cmd.
+const byte commands[][5] = {
+  {BASE_ID, 0x1E, 0xEF},              //0, Cartridge info request. Respond with 6 bytes (confirmed)
+  {ALT_ID, 0x1B, 0xE0, 0x01, 0x08},   //1, track info req. resp 9 bytes
+  {BASE_ID, 0x1B, 0x2D, 0x40, 0x01},  //2, next track.
+  {BASE_ID, 0x1B, 0x2D, 0x00, 0x01},  //3, prev track
+  {BASE_ID, 0x1A, 0x50},              //4, next cd, not verified (what buttons on HU trigger this command?)
+  {BASE_ID, 0x1A, 0x50},              //5, not used
+  {BASE_ID, 0x19, 0x2F},            //6, power up. resp ack (0x00), 0x19 could be 0x49??
   {BASE_ID, 0x19, 0x22},            //7, power down. ack (0x00), not verified
   {BASE_ID, 0x19, 0x29},            //8, FFW. ack, not verified
   {BASE_ID, 0x19, 0x26},            //9, FRW. ack, not verified
@@ -53,20 +62,41 @@ byte commands[][5] = {
   {0x07, 0x1A, 0xEE},               //12 main init seq. wait for BASE_ID and respond with RESPONSE_ID.
   {0x00, 0x00, 0x1C, 0xED},         //13 secondary init req. wait for BASE_ID and respond with RESPONSE_ID.
   {0x00, 0x1C, 0xEC}                //14 master req broadcast. wait for MASTER_ID and respond with MASTER_ID.
-  //  {BASE_ID, 0x19, 0x44},            //15 ??. ack (cd player only?)
-  //  {BASE_ID, 0x19, 0x40},            //16 ??. ack (cd player only?)
-  //  {BASE_ID, 0x1B, 0x2D, 0x40, 0x06},//17 ??. ack (cd player only?)
 };
-
-
 //keep track of the length of each command. (The two dimensional array above have fixed width (padded with 0x00))
 const byte listLen = 15;
-byte cmdLen[listLen] = {3, 5, 5, 5, 4, 4, 3, 3, 3, 3, 3, 3, 3, 4, 3};
+byte cmdLen[listLen] = {3, 5, 5, 5, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3};
 
-//predefined values
-byte track = 0x01; //Display show HEX value, not DEC. (A-F not "allowed")
-byte cd = 0x01; //1-10 is allowed (in HEX. 0A-0F and 1A-1F is not allowed)
-byte powerup_ack = 0x00;
+//arrays to send to HU when requested
+
+/*TRACK INFO
+  Most comments in HEX
+
+  0.  status message
+  1.  Status message
+    02 power off
+    08 power on
+  2.  8 = HU display: random
+  3.  HU display: CD number (1-10 DEC!!)
+  4.  Unknown meaning.
+  5.  TRACK number
+  6.  Hours?     not displayed on HU-650
+  7.  Minutes?   not displayed on HU-650
+  8.  Unsure
+
+*/
+byte trackInfo[] = {0x00, 0x02, 0x00, cd, 0x80, track, 0xC7, 0x0A, 0x02}; //9 bytes
+byte startByte = 0x08; //on powerup - change trackInfo[1] & [8] to this
+byte stopByte = 0x02; //same on powerdown
+
+//CARTRIDGE INFO
+//According to internet resources, HEX 00 08 01 4A 0C CC is a valid answer.
+//another source: 0x00, 0x0f, 0xff, 0x4a, 0xfc, 0xff
+byte cartridgeInfo[] = {0x00, 0xFC, 0xFF, 0x4A, 0xFC, 0xFF};              //6 bytes
+
+//MASTER MODE INFO
+byte masterInfo[] = {0xF8, 0x85, 0xE2, 0x80, 0x03, 0x00, 0x02, 0x02};     //8 bytes
+
 
 
 void setup() {
@@ -83,7 +113,7 @@ void setup() {
   digitalWrite(nextPin, LOW);
   digitalWrite(prevPin, LOW);
   digitalWrite(playPin, LOW);
-  
+
 
   //LED indicates connected status.
   pinMode(13, OUTPUT);
@@ -103,13 +133,6 @@ void setup() {
 
 //Main loop
 void loop() {
-  /* Note to self
-     check for busy going low, then data will come. Fast.
-     When high again, restart all counters.
-     keep count of bytecount in current broadcast.
-  */
-
-  //it MIGHT be faster to keep theese variables global.
   static byte byteCounter = 0;  //keep track of how many bytes is sent in current command
   static byte lastByte = 0;     //used to copy volatile byte to register variable. See below
   static byte matching[listLen];     //Keep track of every matching byte in the commands array
@@ -155,34 +178,71 @@ void loop() {
               case 2:
                 track++;
                 fixTrack();
+                trackInfo[5] = track;
                 nextTrack();
                 break;
               //3, prev track
               case 3:
                 track--;
                 fixTrack();
+                trackInfo[5] = track;
                 prevTrack();
                 break;
-              //4, next cd, not verified (what buttons trigger this command?)
+              //4, choose CD
               case 4:
-                cd++;
+                //wait for next byte to get CD number
+                while (!(PIND & (1 << MELBUS_BUSY))) {
+                  if (byteIsRead) {
+                    byteIsRead = false;
+                    switch (melbus_ReceivedByte) {
+                      case 0x81:
+                        cd = 1;
+                        break;
+                      case 0x82:
+                        cd = 2;
+                        break;
+                      case 0x83:
+                        cd = 3;
+                        break;
+                      case 0x84:
+                        cd = 4;
+                        break;
+                      case 0x85:
+                        cd = 5;
+                        break;
+                      case 0x86:
+                        cd = 6;
+                        break;
+                      case 0x41:
+                        cd++;
+                        break;
+                      case 0x01:
+                        cd--;
+                        break;
+                      default:
+                        //cd++;
+                        break;
+                    }
+                  }
+                }
+                trackInfo[3] = cd;
                 break;
-              //5, prev cd, not verified
+              //5, not used
               case 5:
-                cd--;
                 break;
               //6, power up. resp ack (0x00), not verified
               case 6:
                 byteToSend = 0x00;
                 SendByteToMelbus();
-                //SendPowerUp();
-                //powerup_ack++; //test until HU is satisfied
-                //Serial.println(powerup_ack);
+                trackInfo[1] = startByte;
+                trackInfo[8] = startByte;
                 break;
               //7, power down. ack (0x00), not verified
               case 7:
                 byteToSend = 0x00;
                 SendByteToMelbus();
+                trackInfo[1] = stopByte;
+                trackInfo[8] = stopByte;
                 break;
               //8, FFW. ack, not verified
               case 8:
@@ -199,11 +259,14 @@ void loop() {
                 byteToSend = 0x00;
                 SendByteToMelbus();
                 play();
+                //trackInfo[0]++; //debug
                 break;
               //11 random mode. ack, not verified
+              //Used as a PLAY button here
               case 11:
                 byteToSend = 0x00;
                 SendByteToMelbus();
+                play();
                 break;
               //12 main init seq. wait for BASE_ID and respond with RESPONSE_ID.
               case 12:
@@ -257,21 +320,21 @@ void loop() {
                   }
                 }
                 break;
-              //15 ??. ack (cd player only?)
-              case 15:
-                byteToSend = 0x00;
-                SendByteToMelbus();
-                break;
-              //16 ??. ack (cd player only?)
-              case 16:
-                byteToSend = 0x00;
-                SendByteToMelbus();
-                break;
-              //17 ??. ack (cd player only?)
-              case 17:
-                byteToSend = 0x00;
-                SendByteToMelbus();
-                break;
+                //              //15
+                //              case 15:
+                //                byteToSend = 0x00;
+                //                SendByteToMelbus();
+                //                break;
+                //              //16
+                //              case 16:
+                //                byteToSend = 0x00;
+                //                SendByteToMelbus();
+                //                break;
+                //              //17
+                //              case 17:
+                //                byteToSend = 0x00;
+                //                SendByteToMelbus();
+                //                break;
             }
             break;    //bail for loop. (Not meaningful to search more commands if one is already found)
           } //end if command found
@@ -308,6 +371,20 @@ void loop() {
     Connected = 0;
   }
 
+  //Incoming serial data is supposed to look like this:
+  //index, databyte: "3, 5"
+  //No error checking here since we're just hacking
+  if (Serial.available() > 0) {
+    int index = Serial.parseInt();
+    trackInfo[index] = (byte) Serial.parseInt();
+    Serial.readStringUntil('\n');
+    for (byte b = 0; b < 9; b++) {
+      Serial.print(trackInfo[b], HEX);
+      Serial.print("-");
+    }
+    Serial.println();
+  }
+
   // I haven't seen any advantages from sending messages to HU.
   //Therefore this section is disabled.
   //  if (flag) {
@@ -320,7 +397,7 @@ void loop() {
 
 //Notify HU that we want to trigger the first initiate procedure to add a new device (CD-CHGR) by pulling BUSY line low for 1s
 void melbusInitReq() {
-  Serial.println("conn");
+  //Serial.println("conn");
   //Disable interrupt on INT0 quicker than: detachInterrupt(MELBUS_CLOCKBIT_INT);
   EIMSK &= ~(1 << INT0);
 
@@ -402,55 +479,19 @@ void MELBUS_CLOCK_INTERRUPT() {
 
 void SendTrackInfo() {
   noInterrupts();
-  //According to internet resources, HEX 10 88 01 01 80 03 00 02 22 should be a valid answer.
-  //another source: 0x00, 0x02, 0x00, 0x01, 0x80, 0x01, 0xff, 0x60, 0x60
-  //All comments in HEX
+  for (byte i = 0; i < 9; i++) {
+    byteToSend = trackInfo[i];
+    SendByteToMelbus();
+  }
+  interrupts();
+}
 
-  //It would probably be faster to call a new function SendByteArrayToMelbus() instead of
-  //calling SendByteToMelbus several times, with overhead each time. It seems we don't have to though,
-  //because it works.
-
-  //Sending 9 bytes:
-  byteToSend = 0x94;
-  SendByteToMelbus();
-  //10, 14, 20, 24, 30, 34, 80, 84, 90, 94 => HU is OK, else error
-
-  byteToSend = 0x01;
-  SendByteToMelbus();
-  //Is this a status message?
-  //above line results:
-  //01 = able to select cd by pushing HU-buttons but it resets to 01 after a couple of secs
-  //00, 10, 20, 40 = HU display: cd load cartridge
-  //22 = HU asking for status rapidly
-  //11 = HU display: CD cartridge empty
-  //44 = HU display: CD number is blinking
-  //81 = HU display: cd error
-
-  byteToSend = 0x01;
-  SendByteToMelbus();
-  //8 = HU display: random
-  //could possibly be used to randomly switch songs :D
-
-  byteToSend = cd;
-  SendByteToMelbus();
-  //HU display: CD number (1-10). 0x10 shows "CD  ". 0x0A (DEC 10) does not work!
-  //HU displays each nibble, and only values < A is valid.
-
-  byteToSend = 0x80;
-  SendByteToMelbus();
-  //Unknown meaning. Could this be unit ID? Like E8
-  // < 40 (HEX) shows TRK-nn (minus sign)
-
-  byteToSend = track;
-  SendByteToMelbus();
-  //TRACK #
-
-  byteToSend = 0x00;
-  SendByteToMelbus(); //probably hours
-  byteToSend = 0x03;
-  SendByteToMelbus(); //probably minutes
-  byteToSend = 0x01;
-  SendByteToMelbus(); //probably seconds  never shown on my HU though ;-(
+void SendCartridgeInfo() {
+  noInterrupts();
+  for (byte i = 0; i < 6; i++) {
+    byteToSend = cartridgeInfo[i];
+    SendByteToMelbus();
+  }
   interrupts();
 }
 
@@ -464,77 +505,12 @@ void reqMaster() {
   DDRD &= ~(1 << MELBUS_DATA); //back to input
 }
 
-void SendCartridgeInfo() {
-  noInterrupts();
-  //According to internet resources, HEX 00 08 01 4A 0C CC is a valid answer.
-  //another source: 0x00, 0x0f, 0xff, 0x4a, 0xfc, 0xff
-  byteToSend = 0x00;
-  SendByteToMelbus();
-  byteToSend = 0x0F;
-  SendByteToMelbus();
-  byteToSend = 0xFF;
-  SendByteToMelbus();
-  byteToSend = 0x4A;
-  SendByteToMelbus(); //cd number
-  byteToSend = 0xFC;
-  SendByteToMelbus();
-  byteToSend = 0xFF;
-  SendByteToMelbus();
-  interrupts();
-}
-
-void SendPowerUp() {
-  //This is just a test. Not in use. When I sniffed the data between
-  //HU and CD-player, the CD-player answered like this, but it might have
-  //been a glitch in the comm.
-  noInterrupts();
-  byteToSend = 0x00;
-  SendByteToMelbus();
-  //  byteToSend = 0x8D;
-  //  SendByteToMelbus();
-  //  byteToSend = 0xF0;
-  //  SendByteToMelbus();
-  //  byteToSend = 0x00;
-  //  SendByteToMelbus();
-  //  byteToSend = 0x84;
-  //  SendByteToMelbus();
-  //  byteToSend = 0x18;
-  //  SendByteToMelbus();
-  //  byteToSend = 0x7F;
-  //  SendByteToMelbus();
-  //  byteToSend = 0xFF;
-  //  SendByteToMelbus();
-  //  //byteToSend = 0xFF;
-  //  SendByteToMelbus();
-  //  //byteToSend = 0xFF;
-  //  SendByteToMelbus();
-  //  //byteToSend = 0xFF;
-  //  SendByteToMelbus();
-  //  //byteToSend = 0xFF;
-  //  SendByteToMelbus();
-  //  SendByteToMelbus();
-  //  SendByteToMelbus();
-  interrupts();
-}
-
 void masterSend() {
   noInterrupts();
-  byteToSend = 0xF8;
-  SendByteToMelbus();
-  byteToSend = 0x85;
-  SendByteToMelbus();
-  byteToSend = 0xE2;
-  SendByteToMelbus();
-  byteToSend = 0x80;
-  SendByteToMelbus(); //cd number?
-  byteToSend = 0x03;
-  SendByteToMelbus();
-  byteToSend = 0x00;
-  SendByteToMelbus();
-  byteToSend = 0x02;
-  SendByteToMelbus();
-  byteToSend = 0x02;
-  SendByteToMelbus();
+  for (byte i = 0; i < 8; i++) {
+    byteToSend = masterInfo[i];
+    SendByteToMelbus();
+  }
   interrupts();
 }
 
@@ -563,25 +539,24 @@ void fixTrack() {
 //Simulate button presses on the BT module. 200 ms works good. Less is not more in this case...
 void nextTrack() {
   digitalWrite(nextPin, HIGH);
-  for(byte i = 0; i < 200; i++)
-  delayMicroseconds(1000);
+  for (byte i = 0; i < 200; i++)
+    delayMicroseconds(1000);
   digitalWrite(nextPin, LOW);
 }
 
 void prevTrack() {
   digitalWrite(prevPin, HIGH);
-  for(byte i = 0; i < 200; i++)
-  delayMicroseconds(1000);
+  for (byte i = 0; i < 200; i++)
+    delayMicroseconds(1000);
   digitalWrite(prevPin, LOW);
 }
 
 void play() {
   digitalWrite(playPin, HIGH);
-  for(byte i = 0; i < 200;i++)
-  delayMicroseconds(1000);
+  for (byte i = 0; i < 200; i++)
+    delayMicroseconds(1000);
   digitalWrite(playPin, LOW);
 }
 
 //Happy listening, hacker!
-
 
