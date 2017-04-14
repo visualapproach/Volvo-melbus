@@ -22,7 +22,7 @@ Based on other peoples work. Credits to [Karl Hagström](http://gizmosnack.blogs
 This project shows the way I did it. Proceed at your own risk. I nearly blew the BT module and the Arduino by switching the 12v RUN cable with the 5v BUSY cable...
 
 ## Schematics
-![Schematics](/schematic.png)
+![Schematics](/schematic.pdf)
 ![Image](/IMG_2056.png)
 
 A little teaser. If I manage to hack, or someone else tells me about the communication for SAT, there might be custom text in the display!
