@@ -23,6 +23,8 @@ This project shows the way I did it. I'm a hobbyist, not a professional electron
 
 ## Schematics
 ![schematics](/schematics_melbus_hack.png)
+
+A picture of my circuit. I cut the audio GND cable after I took the picture, and put everything in a 3d-printed case.
 ![Image](/IMG_2056.png)
 
 A little teaser. If I manage to hack, or someone else tells me about the communication for SAT, there might be custom text in the display!
