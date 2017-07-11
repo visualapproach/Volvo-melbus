@@ -19,10 +19,10 @@ Some knowledge of electronics. You are responsible if things break! Not me!
 
 Based on other peoples work. Credits to [Karl Hagström](http://gizmosnack.blogspot.se/2015/11/aux-in-volvo-hu-xxxx-radio.html) and http://volvo.wot.lv/wiki/doku.php?id=melbus.
 
-This project shows the way I did it. Proceed at your own risk. I nearly blew the BT module and the Arduino by switching the 12v RUN cable with the 5v BUSY cable...
+This project shows the way I did it. I'm a hobbyist, not a professional electronics engineer. Proceed at your own risk. I nearly blew the BT module and the Arduino by switching the 12v RUN cable with the 5v BUSY cable...
 
 ## Schematics
-![schematics](/schematics.png)
+![schematics](/schematics_melbus_hack.png)
 ![Image](/IMG_2056.png)
 
 A little teaser. If I manage to hack, or someone else tells me about the communication for SAT, there might be custom text in the display!
