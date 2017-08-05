@@ -22,7 +22,7 @@ Based on other peoples work. Credits to [Karl Hagström](http://gizmosnack.blogs
 This project shows the way I did it. I'm a hobbyist, not a professional electronics engineer. Proceed at your own risk. I nearly blew the BT module and the Arduino by switching the 12v RUN cable with the 5v BUSY cable...
 
 ## Schematics
-![schematics](/schematics_melbus_hack.png)
+![schematics](/schematics_melbus_hack_v2.png)
 
 A picture of my circuit. I cut the audio GND cable after I took the picture, and put everything in a 3d-printed case.
 ![Image](/IMG_2056.png)
