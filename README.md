@@ -11,6 +11,7 @@ What you need:
    * 1x 1KΩ
 * A rectifier diode (> 0,5A e.g. 1N4004)
 * 3x LED's (To drop voltage and look cool)
+* 1x 470 uF capacitor
 * Cables
 * Male DIN plug, 8 pin, 270 degrees
 * [BT Audio Module like this](http://www.ebay.com/itm/161854077325?_trksid=p2057872.m2749.l2649&ssPageName=STRK%3AMEBIDX%3AIT "Ebay Link")
@@ -27,7 +28,4 @@ This project shows the way I did it. I'm a hobbyist, not a professional electron
 A picture of my circuit. I cut the audio GND cable after I took the picture, and put everything in a 3d-printed case.
 ![Image](/IMG_2056.png)
 
-A little teaser. If I manage to hack, or someone else tells me about the communication for SAT, there might be custom text in the display!
-It's really hard though, to know how to do that without a SAT device to listen in on.
-![Image](/IMG_2065.JPG)
-![Image](/IMG_2067.JPG)
+If anybody knows anything about the communication between HU and SAT radio, I'd appreciate some help!
