@@ -28,4 +28,7 @@ This project shows the way I did it. I'm a hobbyist, not a professional electron
 A picture of my circuit. I cut the audio GND cable after I took the picture, and put everything in a 3d-printed case.
 ![Image](/IMG_2056.png)
 
+Just because I could, I added a couple of RGB LEDs to the foot dwell light armatures. It is controlled by pressing the CD buttons on the HU. I can turn on or off driver's/passengers side individually by pressing CD 1 / 2. And CD3, 4 and 5 toggles the RED, GREEN and BLUE LEDs (Possible colors is red, green, blue, cyan, magenta, yellow and white). I drilled a 5 mm hole just below the lightbulb connector and pressfitted the LED. I think it turned out pretty nice!
+![Image](/melbus_LEDs.jpg)
+
 If anybody knows anything about the communication between HU and SAT radio, I'd appreciate some help!
