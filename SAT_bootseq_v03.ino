@@ -4,6 +4,7 @@
   iMIV sniffed by Vincent Gijsen. Thanks a LOT!
 
   changed back to my HW settings and made a new sendbytetomelbus function which generates its own clock
+  line 200 has been updated (bug correction)
 */
 
 #define MELBUS_CLOCKBIT (byte)2 //Pin D2  - CLK
