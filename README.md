@@ -23,12 +23,8 @@ Based on other peoples work. Credits to [Karl Hagström](http://gizmosnack.blogs
 This project shows the way I did it. I'm a hobbyist, not a professional electronics engineer. Proceed at your own risk. I nearly blew the BT module and the Arduino by switching the 12v RUN cable with the 5v BUSY cable...
 
 ## Schematics
-![schematics](/schematics_melbus_hack_v2.png)
 
-A picture of my circuit. I cut the audio GND cable after I took the picture, and put everything in a 3d-printed case.
-![Image](/IMG_2056.png)
+![Image](/IMG_2340.JPG)
+![Image](/IMG_2341.JPG)
+![Image](/IMG_2342.JPG)
 
-Just because I could, I added a couple of RGB LEDs to the foot dwell light armatures. It is controlled by pressing the CD buttons on the HU. I can turn on or off driver's/passengers side individually by pressing CD 1 / 2. And CD3, 4 and 5 toggles the RED, GREEN and BLUE LEDs (Possible colors is red, green, blue, cyan, magenta, yellow and white). I drilled a 5 mm hole just below the lightbulb connector and pressfitted the LED. I think it turned out pretty nice!
-![Image](/melbus_LEDs.jpg)
-
-If anybody knows anything about the communication between HU and SAT radio, I'd appreciate some help!
