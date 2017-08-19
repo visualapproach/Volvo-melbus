@@ -1,5 +1,7 @@
 # Volvo MELBUS
 
+NEWS: Thanks to VincentGijsen we can now enjoy text on the HU! See my other branch.
+
 Bluetooth enable your Volvo stereo HU.
 
 What you need:
@@ -31,4 +33,4 @@ A picture of my circuit. I cut the audio GND cable after I took the picture, and
 Just because I could, I added a couple of RGB LEDs to the foot dwell light armatures. It is controlled by pressing the CD buttons on the HU. I can turn on or off driver's/passengers side individually by pressing CD 1 / 2. And CD3, 4 and 5 toggles the RED, GREEN and BLUE LEDs (Possible colors is red, green, blue, cyan, magenta, yellow and white). I drilled a 5 mm hole just below the lightbulb connector and pressfitted the LED. I think it turned out pretty nice!
 ![Image](/melbus_LEDs.jpg)
 
-If anybody knows anything about the communication between HU and SAT radio, I'd appreciate some help!
+
