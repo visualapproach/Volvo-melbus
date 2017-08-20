@@ -1,8 +1,12 @@
 # Volvo MELBUS
 
-NEWS: Thanks to VincentGijsen we can now enjoy text on the HU! See my other branch.
+### NEWS: See my other branch - custom text on HU display
 
-Bluetooth enable your Volvo stereo HU.
+
+
+
+#### Bluetooth enable your Volvo stereo HU.
+Or just make an AUX.
 
 What you need:
 * Arduino Nano 5V
