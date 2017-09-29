@@ -1,5 +1,6 @@
 # Volvo MELBUS
 
+Hint: I switched to a CSR8645 BT module and a ground loop isolator. It made a huge difference in sound quality! I recommend that over this module. No more noise.
 ### NEWS: See my other branch - custom text on HU display
 
 
