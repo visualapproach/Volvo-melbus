@@ -33,4 +33,4 @@ Demo https://youtu.be/jGOKGUjlLhI
 
 ## Schematics
 ![schematics](schematics/8645_4066.png)
-
+Found an error: R1 should be connected to the right of the diode.
