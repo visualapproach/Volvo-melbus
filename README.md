@@ -29,6 +29,8 @@ Credits to
 
 This project shows the way I did it. I'm a hobbyist, not a professional electronics engineer. Proceed at your own risk. The devices use different voltage levels, so there is a chance that you will let the magic smoke out. (Hence the 4066)
 
+Demo https://youtu.be/jGOKGUjlLhI
+
 ## Schematics
 ![schematics](schematics/8645_4066.png)
 
