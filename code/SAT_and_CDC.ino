@@ -132,9 +132,9 @@ const byte SO_C3_Init_2 = 30;
 
 //Defining the commands. First byte is the length of the command.
 #define MRB_1 {3, 0x00, 0x1C, 0xEC}            //Master Request Broadcast version 1
-#define MRB_2 {3, 0x00, 0x1E, 0xEC}            //Master Request Broadcast version 2
+#define MRB_2 {3, 0x00, 0x1E, 0xEC}            //Master Request Broadcast version 2 (could be secondary init also?)
 #define MI {3, 0x07, 0x1A, 0xEE}               //Main init sequence
-#define SI {3, 0x00, 0x1C, 0xED}               //Secondary init sequence (after ignition)
+#define SI {3, 0x00, 0x1E, 0xED}               //Secondary init sequence (after ignition off then on)
 
 #define C1_1 {5, 0xC1, 0x1B, 0x7F, 0x01, 0x08} //Respond with c1_init_1
 #define C1_2 {5, 0xC1, 0x1D, 0x73, 0x01, 0x81} //Respond with c1_init_2 (text)
