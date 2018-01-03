@@ -32,5 +32,6 @@ This project shows the way I did it. I'm a hobbyist, not a professional electron
 Demo https://youtu.be/jGOKGUjlLhI
 
 ## Schematics
-![schematics](schematics/8645_4066.png)
-Found an error: R1 should be connected to the right of the diode.
+(R5 and R6 are optional. They are there to measure battery voltage. The zener diode is not needed but protects the arduino if R5 breaks)
+![schematics](schematics/bat_mon.png)
+
