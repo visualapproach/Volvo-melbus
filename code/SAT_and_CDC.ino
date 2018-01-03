@@ -1,14 +1,20 @@
 /*
-  use eeprom to store output pin states. Also implemented "timers" to restart communication if necessary.
+  New in this version: 
+    Hardwarewise - added a voltage divider to measure car battery voltage. 
+    Softwarewise - battery voltage is displayed on line 2 and updated every 5-ish second.
+
+  Previous version:
+    Uses eeprom to store output pin states. (For some pins I use to drive LED lights.) 
+    Implemented "timers" to restart communication if necessary.
 
   Todo (someone): if possible, enable scrolling text. This should be possible since the text messages is larger than the screen.
   I guess scrolling can be turned on by
   1) editing some bits in the init messages
   2) editing some bits in the text headers
   3) some specific character combination in the text itself
-  (Text IS scrolling twice after pressing source/sat display/ and choosing title/artist etc)
+  (Text IS scrolling twice after pressing source/sat display/ and choosing title/artist etc on the HU)
 
-  By Thomas Landahl, 2017-11-11
+  By Thomas Landahl, 2018-01-03
   Comm sniffing and some code contribution by Vincent Gijsen. Thanks a LOT!
 
 */
@@ -25,19 +31,26 @@ const byte nextPin = 9;
 const byte upPin = 11;    //volume up
 const byte downPin = 12;  //volume down
 const byte playPin = 10;
-const byte LEDLEFT = 14;
+const byte LEDLEFT = 14;  //A0
 const byte LEDRIGHT = 15;
 const byte LEDB = 16;
 const byte LEDG = 17;
 const byte LEDR = 18;
 const byte LEDMISC1 = 19;
 const byte LEDMISC2 = 20;
+const byte BATTERY = 21; //A7
+
+
+const int R_CAR = 10; //cable resistance from battery to device
+const int R_1 = 3220; //r1 of voltage divider (connected to GND)
+const int R_2 = 6900; //r2 of voltage divider (connected to RAW)
+const float T_LOSS = 0.8; //if circuit is protected with a transistor and diode, put total voltage drop here.
 
 byte track = 0x01; //Display show HEX value, not DEC. (A-F not "allowed")
 byte cd = 0x01; //1-10 is allowed (in HEX. 0A-0F and 1A-1F is not allowed)
 
 
-//volatile variables used inside and outside of ISP
+//volatile variables used inside AND outside of ISP
 volatile byte melbus_ReceivedByte = 0;
 volatile byte melbus_Bitposition = 7;
 volatile bool byteIsRead = false;
@@ -61,9 +74,9 @@ byte textRow = 2;
 byte customText[36] = "visualapproach";
 //HU asks for line 3 and 4 below at startup. They can be overwritten by customText if you change textRow to 3 or 4
 byte textLine[4][36] = {
-  {'T', 'h', 'i', 's', ' ', 'i', 's', ' ', 'o', 'n', 'e', ' ', 't', 'e', 'x', 't'},
-  {'A', 'n', 'o', 't', 'h', 'e', 'r', ' ', 't', 'e', 'x', 't', 'l', 'i', 'n', 'e'},
-  {"2=left 3=right"},
+  {'T', 'h', 'i', 's', ' ', 'i', 's', ' ', 'o', 'n', 'e', ' ', 't', 'e', 'x', 't'},   //is overwritten by init-sequence ("Volvo!")
+  {'A', 'n', 'o', 't', 'h', 'e', 'r', ' ', 't', 'e', 'x', 't', 'l', 'i', 'n', 'e'},   //is overwritten by customText[]
+  {"2=left 3=right"},                                                                 //changes if pressing a #-button
   {"4=r, 5=g, 6=b"}
 };
 
@@ -132,9 +145,10 @@ const byte SO_C3_Init_2 = 30;
 
 //Defining the commands. First byte is the length of the command.
 #define MRB_1 {3, 0x00, 0x1C, 0xEC}            //Master Request Broadcast version 1
-#define MRB_2 {3, 0x00, 0x1E, 0xEC}            //Master Request Broadcast version 2 (could be secondary init also?)
+#define MRB_2 {3, 0x00, 0x1E, 0xEC}            //Master Request Broadcast version 2 (maybe this is second init seq?)
 #define MI {3, 0x07, 0x1A, 0xEE}               //Main init sequence
-#define SI {3, 0x00, 0x1E, 0xED}               //Secondary init sequence (after ignition off then on)
+#define SI {3, 0x00, 0x1E, 0xED}               //Secondary init sequence (turn off ignition, then on)
+//changed from 00 1D ED
 
 #define C1_1 {5, 0xC1, 0x1B, 0x7F, 0x01, 0x08} //Respond with c1_init_1
 #define C1_2 {5, 0xC1, 0x1D, 0x73, 0x01, 0x81} //Respond with c1_init_2 (text)
@@ -268,17 +282,18 @@ void setup() {
 
 
 
-/*        **********
+/*        **************************************************
 
           MAIN LOOP
 
-          **********
+          **************************************************
 */
 
 
 void loop() {
   static byte lastByte = 0;     //used to copy volatile byte to register variable. See below
-  static byte runOnce = 50;     //counts down on every received message from HU. Triggers when it is passing 1.
+  static long runOnce = 300000;     //counts down on every received message from HU. Triggers when it is passing 1.
+  static long runPeriodically = 100000; //same as runOnce but resets after each countdown.
   static bool powerOn = true;
   static long HWTicks = 0;      //age since last BUSY switch
   static long ComTicks = 0;     //age since last received byte
@@ -349,11 +364,11 @@ void loop() {
                     byteIsRead = false;
                     if (melbus_ReceivedByte == BASE_ID) {
                       byteToSend = RESPONSE_ID;
-                      SendByteToMelbus();                      
+                      SendByteToMelbus();
                     }
                     if (melbus_ReceivedByte == CDC_BASE_ID) {
                       byteToSend = CDC_RESPONSE_ID;
-                      SendByteToMelbus();                      
+                      SendByteToMelbus();
                     }
                   }
                 }
@@ -581,11 +596,13 @@ void loop() {
                     break;
                   }
                 }
-                byteToSend = 0x00;  //no idea what to answer
+                byteToSend = 255; //0x00;  //no idea what to answer
                 //but HU is displaying "no artist" for a short while when sending zeroes.
                 //Guessing there should be a number here indicating that text will be sent soon.
                 SendByteToMelbus();
+                byteToSend = 255; //0x00;  //no idea what to answer
                 SendByteToMelbus();
+                byteToSend = 255; //0x00;  //no idea what to answer
                 SendByteToMelbus();
 
                 switch (b1) {
@@ -755,29 +772,35 @@ void loop() {
   //Don't take too much time though, since BUSY might go active anytime, and then we'd better be ready to receive.
 
   //Printing transmission log (from HU, excluding our answer and things after it)
-  if (ComTicks == 0) {
+  //if (ComTicks == 0) {                    //print all messages
+  if (ComTicks == 0 && ConnTicks != 0) {    //print unmatched messages (unknown)
     for (byte b = 0; b < byteCounter - 1; b++) {
       Serial.print(melbus_log[b], HEX);
       Serial.print(" ");
     }
     Serial.println();
-    if (runOnce >= 1) {
-      runOnce--;
-    }
   }
 
+  //runOnce is counting down to zero and stays there
+  //after that, runPeriodically is counting down over and over...
+  if (runOnce >= 1) {
+    runOnce--;
+  } else if (runPeriodically > 0) runPeriodically--;
 
+  //check if BUSY-line is alive
   if (HWTicks > timeout) {
     Serial.println("BUSY line problem");
     HWTicks = 0;
     //while (1); //maybe do a reset here, after a delay.
   }
 
+  //check if we are receiving any data
   if (ComTicks > timeout) {
-    Serial.println("COM failure (CLK)");
+    Serial.println("COM failure (check CLK line)");
     ComTicks = 0;
   }
 
+  //check if HU is talking to us specifically, otherwise force it.
   if (ConnTicks > timeout) {
     Serial.println("Lost connection. Re-initializing");
     ConnTicks = 0;
@@ -791,12 +814,11 @@ void loop() {
     matching[i] = 0;
   }
 
-  //send incoming text to HU
+  //send incoming text to HU. (From serial if you have a computer connected)
   while (Serial.available() > 0) {
     Serial.readBytesUntil('\n', customText, 35);
-    Serial.println("sending");
+    Serial.print("Sending: ");
     Serial.println((char *)customText);
-    Serial.println("sent");
     //next run, we want to send text!
     reqMaster();
   }
@@ -804,6 +826,15 @@ void loop() {
   if ((runOnce == 1) || reqMasterFlag) {
     reqMaster();
     reqMasterFlag = false;
+  }
+
+  if (runPeriodically == 0) {
+    float battery = getBatV();
+    String message = "BAT: " + String(battery, 2) + "V" + '\0';
+    runPeriodically = 100000;
+    textRow = 2;
+    message.getBytes(customText, 36);
+    reqMaster();
   }
 }
 
@@ -1132,6 +1163,13 @@ void SendCartridgeInfo() {
   }
 }
 
+float getBatV() {
+  float a, bv;
+
+  a = analogRead(BATTERY) * 5.0 / 1023.0;
+  bv = a * (R_1 + R_2 + R_CAR) / R_1 + T_LOSS;
+  return bv;
+}
+
 
 //Happy listening AND READING, hacker!
-
