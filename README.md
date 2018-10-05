@@ -18,14 +18,16 @@ Parts list:
 * Male DIN plug, 8 pin, 270 degrees
 * CSR8645 Bluetooth device with 12v regulator onboard
 * 4066 bilateral switch IC (optional to remote control audio source)
-* Ground loop isolator (yes, there is no way around it if you want to get noise free sound)
+* Ground loop isolator (Optional. Use if you hear noise)
 
 Some knowledge of electronics, and you need to be good at soldering. You are responsible if things break! Not me! 
 
 Credits to 
 * [Karl Hagström](http://gizmosnack.blogspot.se/2015/11/aux-in-volvo-hu-xxxx-radio.html)
 * http://volvo.wot.lv/wiki/doku.php?id=melbus.
-* Vincent
+* https://www.vincentgijsen.nl/
+
+Thanks to archi for making a PCB
 
 This project shows the way I did it. I'm a hobbyist, not a professional electronics engineer. Proceed at your own risk. The devices use different voltage levels, so there is a chance that you will let the magic smoke out. (Hence the 4066)
 
