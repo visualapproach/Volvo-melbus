@@ -40,9 +40,9 @@ const byte downPin = 8;  //volume down (not used on PCB)
 const byte LED_RED_LFT = 14;  //A0
 const byte LED_GRN_LFT = 15;  //A1
 const byte LED_BLU_LFT = 16;  //A2
-const byte LED_RED_RGT = 17;  //A3
+const byte LED_RED_RGT = 19;  //A3
 const byte LED_GRN_RGT = 18;  //A4
-const byte LED_BLU_RGT = 19;  //A5
+const byte LED_BLU_RGT = 17;  //A5
 const byte MISC = 20;         //A6
 const byte BATTERY = 21;      //A7 - PCB uses this
 
@@ -1146,9 +1146,9 @@ void setLEDs() {
   digitalWrite(LED_RED_LFT, (lftClr & B00000100) >> 2);
   digitalWrite(LED_GRN_LFT, (lftClr & B00000010) >> 1);
   digitalWrite(LED_BLU_LFT, lftClr & B00000001);
-  digitalWrite(LED_RED_LFT, (rgtClr & B00000100) >> 2);
-  digitalWrite(LED_GRN_LFT, (rgtClr & B00000010) >> 1);
-  digitalWrite(LED_BLU_LFT, rgtClr & B00000001);
+  digitalWrite(LED_RED_RGT, (rgtClr & B00000100) >> 2);
+  digitalWrite(LED_GRN_RGT, (rgtClr & B00000010) >> 1);
+  digitalWrite(LED_BLU_RGT, rgtClr & B00000001);
 
 }
 
