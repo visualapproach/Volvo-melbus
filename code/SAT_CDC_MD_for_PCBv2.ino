@@ -505,7 +505,7 @@ void loop() {
                         SendByteToMelbus();
                         melbus_Bitposition = 7;
                         SendText2(textInit);
-                                              if (textInit) {
+                      if (textInit) {
                         textInit = false;
                         memcpy(text.raw, mdTextHeader, sizeof(mdTextHeader));
                         memcpy(text.text_cmd_st.footer, text_footer, 2); // TODO: Change (all) anonymous arrays to something that's defined
@@ -519,8 +519,6 @@ void loop() {
                 }
                 //Serial.println("MRB 1");
                 break;
-
-              //1, MAIN INIT
               case E_SI:
               case E_MI:
                 textInitHeader[3] = 0x68;
@@ -548,7 +546,7 @@ void loop() {
                 }
                 //Serial.println("main init");
                 break;
-              //CMD_1. answer 0x10
+              // answer 0x10
               case E_CMD_1:
                 // we read 3 different tuple bytes (0x00 92), (01,3) and (02,5), response is always 0x10;
                 while (!(PIND & (1 << MELBUS_BUSY))) {
@@ -567,7 +565,7 @@ void loop() {
                 break;
 
 
-              //PUP. power on?
+              // power on SAT
               case E_PUP:
                 // {0xC0, 0x1C, 0x70, 0x02} we respond 0x90;
                 while (!(PIND & (1 << MELBUS_BUSY))) {
@@ -586,7 +584,7 @@ void loop() {
                 digitalWrite(MISC, HIGH);
                 break;
 
-              // CMD_3,  // 6 unknown. Answer: 0x10, 0x80, 0x92
+              //  unknown. Answer: 0x10, 0x80, 0x92
               case E_CMD_3:
                 byteToSend = 0x10;
                 SendByteToMelbus();
@@ -597,7 +595,7 @@ void loop() {
                 //Serial.println("cmd 3");
                 break;
 
-              //C1_1,    7 respond with c1_init_1
+              // respond with c1_init_1
               case E_C1_1:
                 for (byte i = 0; i < SO_C1_Init_1; i++) {
                   byteToSend = C1_Init_1[i];
@@ -606,7 +604,7 @@ void loop() {
                 //Serial.println("C1 1");
                 break;
 
-              //C1_2,   8 respond with c1_init_2 (contains text)
+              // respond with c1_init_2 (contains text)
               case E_C1_2:
                 for (byte i = 0; i < SO_C1_Init_2; i++) {
                   byteToSend = C1_Init_2[i];
@@ -615,7 +613,7 @@ void loop() {
                 //Serial.println("C1_2");
                 break;
 
-              //  C3_0,    9 respond with c3_init_0
+              // respond with c3_init_0
               case E_C3_0:
                 for (byte i = 0; i < SO_C3_Init_0; i++) {
                   byteToSend = C3_Init_0[i];
@@ -624,7 +622,7 @@ void loop() {
                 //Serial.println("C3 init 0");
                 break;
 
-              //C3_1,    10 respond with c3_init_1
+              // respond with c3_init_1
               case E_C3_1:
                 for (byte i = 0; i < SO_C3_Init_1; i++) {
                   byteToSend = C3_Init_1[i];
@@ -633,7 +631,7 @@ void loop() {
                 //Serial.println("C3 init 1");
                 break;
 
-              //C3_2,   11 respond with c3_init_2
+              //respond with c3_init_2
               case E_C3_2:
                 for (byte i = 0; i < SO_C3_Init_2; i++) {
                   byteToSend = C3_Init_2[i];
@@ -642,7 +640,7 @@ void loop() {
                 //Serial.println("C3 init 2");
                 break;
 
-              //   C2_0,    12 get next byte (nn) and respond with 10, 0, nn, 0,0 and (14 times 0x20)
+              // get next byte (nn) and respond with 10, 0, nn, 0,0 and (14 times 0x20)
               // possibly a text field?
               case E_C2_0:
                 while (!(PIND & (1 << MELBUS_BUSY))) {
@@ -668,8 +666,6 @@ void loop() {
                 //Serial.print("C2_0");
                 //Serial.println(melbus_ReceivedByte, HEX);
                 break;
-
-              //C2_1,    13 respond as 12
               case E_C2_1:
                 while (!(PIND & (1 << MELBUS_BUSY))) {
                   if (byteIsRead) {
@@ -694,8 +690,6 @@ void loop() {
                 //Serial.print("C2_1");
                 //Serial.println(melbus_ReceivedByte, HEX);
                 break;
-
-              //C5_1
               case E_C5_1:
                 while (!(PIND & (1 << MELBUS_BUSY))) {
                   if (byteIsRead) {
@@ -723,8 +717,6 @@ void loop() {
                 }
                 //Serial.print("C5_1");
                 break;
-
-              //BTN
               case E_BTN:
                 //wait for next byte to get CD number
                 while (!(PIND & (1 << MELBUS_BUSY))) {
@@ -770,32 +762,24 @@ void loop() {
                 //Serial.print("you pressed CD #");
                 //Serial.println(b1);
                 break;
-
-              //NXT
               case E_NXT:
                 byteToSend = 0x00;  //no idea what to answer
                 SendByteToMelbus();
                 nextTrack();
                 //Serial.println("NXT");
                 break;
-
-              //PRV
               case E_PRV:
                 byteToSend = 0x00;  //no idea what to answer
                 SendByteToMelbus();
                 prevTrack();
                 //Serial.println("PRV");
                 break;
-
-              //SCN
               case E_SCN:
                 byteToSend = 0x00;  //no idea what to answer
                 SendByteToMelbus();
                 play();
                 //Serial.println("SCN");
                 break;
-
-              //PWR OFF
               case E_PWR_OFF:
                 byteToSend = 0x00;  //no idea what to answer
                 SendByteToMelbus();
@@ -803,63 +787,75 @@ void loop() {
                 powerOn = false;
                 digitalWrite(MISC, LOW);
                 break;
-
-              //PWR SBY
               case E_PWR_SBY:
                 byteToSend = 0x00;  //no idea what to answer
                 SendByteToMelbus();
                 //Serial.println("Power stby");
                 powerOn = false;
                 break;
-
-              //IGN_OFF
               case E_IGN_OFF:
                 //Serial.println("Ignition OFF");
                 powerOn = false;
                 break;
-
-              //
               case E_CDC_CIR:
                 SendCartridgeInfo(cdcCartridgeInfo);
                 break;
-
-              //
               case E_CDC_TIR:
                 SendTrackInfo(cdcTrackInfo);
                 break;
-
-              //
+              case E_MD_NXT:
+                mdTrackInfo[5] = track;
               case E_CDC_NXT:
-                track++;
-                fixTrack();
+                track = fixTrack(++track);
                 cdcTrackInfo[5] = track;
+                byteToSend = 0x00;
+                SendByteToMelbus();
                 nextTrack();
                 break;
-
-              //
+              case E_MD_PRV:
+                mdTrackInfo[5] = track;
               case E_CDC_PRV:
-                track--;
-                fixTrack();
+                track = fixTrack(--track);
                 cdcTrackInfo[5] = track;
                 prevTrack();
+                byteToSend = 0x00;
+                SendByteToMelbus();
                 break;
-
-              //
+              case E_MD_CHG:
               case E_CDC_CHG:
-                changeCD();
+              while (!(PIND & (1 << MELBUS_BUSY))) {
+                if (byteIsRead) {
+                    byteIsRead = false;
+                    changeCD(&cd, &track, melbus_ReceivedByte);
+                    byteToSend = 0x00;
+                    SendByteToMelbus();
+                  }
+                }
+                if(cd > 10) {
+                  cd = 1;
+                }
+                if (current_state == STATE_CDC) {
+                  if (cd < 1) {
+                    cd = 10;
+                  }
+                } else if (current_state == STATE_MD) {
+                  if (cd > 4) {
+                    cd = 0; 
+                  }
+                }
+                cdcTrackInfo[5] = mdTrackInfo[5] = track;
+                cdcTrackInfo[3] = mdTrackInfo[3] = cd;
                 break;
-
-              //CDC_PUP
               case E_CDC_PUP:
                 byteToSend = 0x00;
                 SendByteToMelbus();
                 cdcTrackInfo[1] = startByte;
                 cdcTrackInfo[8] = startByte;
                 digitalWrite(MISC, HIGH);
+                cd = 1;
+                track = 1;
                 current_state = STATE_CDC;
                 break;
-
-              //CDC_PDN
               case E_CDC_PDN:
                 byteToSend = 0x00;
                 SendByteToMelbus();
@@ -867,33 +863,24 @@ void loop() {
                 cdcTrackInfo[8] = stopByte;
                 digitalWrite(MISC, LOW);
                 break;
-
-              //CDC_FFW
               case E_CDC_FFW:
                 byteToSend = 0x00;
                 SendByteToMelbus();
                 break;
-
-              //CDC_FRW
               case E_CDC_FRW:
                 byteToSend = 0x00;
                 SendByteToMelbus();
                 break;
-
-              //CDC_SCN
               case E_CDC_SCN:
                 byteToSend = 0x00;
                 SendByteToMelbus();
                 break;
-
-              //CDC_RND
               case E_CDC_RND:
                 byteToSend = 0x00;
                 SendByteToMelbus();
                 play();
                 break;
-              case E_MD_NU:   // 33
-              //CDC_NU
+              case E_MD_NU:
               case E_CDC_NU:
                 break;
               case E_MD_CIR:
@@ -902,7 +889,7 @@ void loop() {
               case E_MD_TIR:
                 SendTrackInfo(mdTrackInfo);
                 break;
-              case E_MD_RTR:   // 34
+              case E_MD_RTR:
                 memcpy(&text.raw[4], text_row_1, 4);
                 fixText(text_array, "testText01");
                 memcpy(text.text_cmd_st.payload, text_array, sizeof(text.text_cmd_st.payload));
@@ -912,7 +899,7 @@ void loop() {
                 SendByteToMelbus();
                 reqMasterFlag = true;
                 break;
-              case E_MD_RTR_2: // 35
+              case E_MD_RTR_2:
                 memcpy(&text.raw[4], text_row_2, 4);
                 fixText(text_array, "testText02");
                 memcpy(text.text_cmd_st.payload, text_array, sizeof(text.text_cmd_st.payload));
@@ -922,7 +909,7 @@ void loop() {
                 SendByteToMelbus();
                 reqMasterFlag = true;
                 break;
-              case E_MD_RTR_3: // 36
+              case E_MD_RTR_3:
                 memcpy(&text.raw[4], text_row_3, 4);
                 fixText(text_array, "testText03");
                 memcpy(text.text_cmd_st.payload, text_array, sizeof(text.text_cmd_st.payload));
@@ -932,17 +919,13 @@ void loop() {
                 SendByteToMelbus();
                 reqMasterFlag = true;
                 break;
-              case E_MD_NXT:
-              case E_MD_PRV:   // 25
-              case E_MD_CHG:   // 26
-                byteToSend = 0x00;
-                SendByteToMelbus();
-                break;
-              case E_MD_PUP:   // 27
+              case E_MD_PUP:
                 mdTrackInfo[1] = startByte;
                 mdTrackInfo[6] = mdTrackInfo[7] = mdTrackInfo[8] = 0;
                 current_state = STATE_MD;
-              case E_MD_PDN:   // 28
+                track = 99;
+                cd = 0;
+              case E_MD_PDN:
                 if (cmd == E_MD_PDN) {
                     mdTrackInfo[1] = stopByte;
                     mdTrackInfo[6] = 0xC;
@@ -950,14 +933,13 @@ void loop() {
                 }
                 reqMasterFlag = true;
                 textInit = true;
-              case E_MD_FFW:   // 29
-              case E_MD_FRW:   // 30
-              case E_MD_SCN:   // 31
-              case E_MD_RND:   // 32
+              case E_MD_FFW:
+              case E_MD_FRW:
+              case E_MD_SCN:
+              case E_MD_RND:
                 byteToSend = 0x00;
                 SendByteToMelbus();
                 break;
-
             } //end switch
             break;    //bail for loop. (Not meaningful to search more commands if one is already found)
           } //end if command found
@@ -1394,10 +1376,10 @@ void setLEDs() {
 
 }
 
-void fixTrack() {
+byte fixTrack(byte track) {
   //cut out A-F in each nibble, and skip "00"
-  byte hn = track >> 4;
-  byte ln = track & 0xF;
+  byte hn = track >> 4; // high nibble
+  byte ln = track & 0xF; // low nibble
   if (ln == 0xA) {
     ln = 0;
     hn += 1;
@@ -1413,62 +1395,50 @@ void fixTrack() {
     ln = 0x9;
     hn = 0x9;
   }
-  track = (hn << 4) + ln;
+  return ((hn << 4) + ln);
 }
 
-void changeCD() {
-  while (!(PIND & (1 << MELBUS_BUSY))) {
-    if (byteIsRead) {
-      byteIsRead = false;
-      switch (melbus_ReceivedByte) {
-        //0x81 to 0x86 corresponds to cd buttons 1 to 6 on the HU (650)
-        case 0x81:
-          cd = 1;
-          track = 1;
-          break;
-        case 0x82:
-          cd = 2;
-          track = 1;
-          break;
-        case 0x83:
-          cd = 3;
-          track = 1;
-          cycleLeft();
-          break;
-        case 0x84:
-          cd = 4;
-          track = 1;
-          cycleRight();
-          break;
-        case 0x85:
-          cd = 5;
-          track = 1;
-          break;
-        case 0x86:
-          cd = 6;
-          track = 1;
-          break;
-        case 0x41:  //next cd
-          cd++;
-          track = 1;
-          break;
-        case 0x01:  //prev cd
-          cd--;
-          track = 1;
-          break;
-        default:
-          track = 1;
-          break;
-      }
-    }
+void changeCD(byte *disk, byte *track, byte command) {
+  switch (command) {
+  //0x81 to 0x86 corresponds to cd buttons 1 to 6 on the HU (650)
+    case 0x81:
+    *disk = 1;
+    *track = 1;
+    break;
+  case 0x82:
+    *disk = 2;
+    *track = 1;
+    break;
+  case 0x83:
+    *disk = 3;
+    *track = 1;
+    cycleLeft();
+    break;
+  case 0x84:
+    *disk = 4;
+    *track = 1;
+    cycleRight();
+    break;
+  case 0x85:
+    *disk = 5;
+    *track = 1;
+    break;
+  case 0x86:
+    *disk = 6;
+    *track = 1;
+    break;
+  case 0x41:  //next cd
+    *disk = *disk + 1;
+    *track = 1;
+    break;
+  case 0x01:  //prev cd
+    *disk = *disk - 1;
+    *track = 1;
+    break;
+  default:
+    *track = 1;
+    break;
   }
-  if (cd > 10) {
-    cd = 1;
-  } else if (cd < 1) {
-    cd = 10;
-  }
-  cdcTrackInfo[3] = cd;
-  cdcTrackInfo[5] = track;
 }
 
 void SendTrackInfo(byte trackInfo2[]) {
